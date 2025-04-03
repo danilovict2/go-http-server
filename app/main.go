@@ -33,7 +33,7 @@ func (s *Server) Accept() {
 			os.Exit(1)
 		}
 
-		Handle(conn)
+		go Handle(conn)
 	}
 }
 
