@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -36,15 +37,29 @@ func (r *Request) setPathValues() {
 		end := strings.Index(endpoint[start:], "}")
 		if end == -1 {
 			continue
-		}		
+		}
 		end += start
 
 		if !strings.HasPrefix(r.Target, endpoint[:start]) || !strings.HasSuffix(r.Target, endpoint[end+1:]) {
 			continue
 		}
 
-		name := endpoint[start+1:end]
-		value := strings.TrimSuffix(strings.TrimPrefix(r.Target, endpoint[:start]), endpoint[end+1:])
-		r.PathValues[name] = value
+		key := endpoint[start+1 : end]
+	
+		value := strings.TrimPrefix(r.Target, endpoint[:start])
+		if valEnd := strings.Index(value, "/"); valEnd != -1 {
+			value = value[:valEnd]
+		}
+		
+		r.PathValues[key] = value
 	}
+}
+
+func NormalizeTarget(r *Request) string {
+	target := r.Target
+	for key, val := range r.PathValues {
+		target = strings.ReplaceAll(target, val, fmt.Sprintf("{%s}", key))
+	}
+
+	return target
 }

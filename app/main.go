@@ -48,9 +48,20 @@ func Handle(conn net.Conn) {
 	}
 
 	req := Unmarshal(rawRequest)
-	if req.Target != "/" {
-		conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
+	target := NormalizeTarget(req)
+	var resp *Response
+
+	if handler, ok := Handlers[target]; ok {
+		resp = handler(req)
 	} else {
-		conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
+		resp = &Response{
+			Protocol:   "HTTP/1.1",
+			StatusCode: 404,
+			StatusText: "Not Found",
+			Headers:    make(map[string]string),
+			Body:       "",
+		}
 	}
+
+	conn.Write(resp.Marshal())
 }
