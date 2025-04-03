@@ -10,16 +10,29 @@ type Request struct {
 	Target     string
 	Protocol   string
 	PathValues map[string]string
+	Headers    map[string]string
 }
 
 func Unmarshal(rawRequest []byte) *Request {
 	parts := strings.Split(string(rawRequest), "\r\n")
 	line := strings.Split(parts[0], " ")
+
+	headerMap := make(map[string]string)
+	for _, header := range parts[1:] {
+		kvp := strings.Split(header, ": ")
+		if len(kvp) < 2 {
+			break
+		}
+
+		headerMap[strings.ToLower(kvp[0])] = kvp[1]
+	}
+
 	req := &Request{
 		Method:     line[0],
 		Target:     line[1],
 		Protocol:   line[2],
 		PathValues: make(map[string]string),
+		Headers:    headerMap,
 	}
 
 	req.setPathValues()
@@ -45,12 +58,12 @@ func (r *Request) setPathValues() {
 		}
 
 		key := endpoint[start+1 : end]
-	
+
 		value := strings.TrimPrefix(r.Target, endpoint[:start])
 		if valEnd := strings.Index(value, "/"); valEnd != -1 {
 			value = value[:valEnd]
 		}
-		
+
 		r.PathValues[key] = value
 	}
 }
