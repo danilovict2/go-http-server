@@ -47,3 +47,9 @@ func (r *Response) marshalHeaders() []byte {
 
 	return ret
 }
+
+func (r *Response) TryCompress(req *Request) {
+	if val, ok := req.Headers["accept-encoding"]; ok && val == "gzip" {
+		r.Headers["Content-Encoding"] = "gzip"
+	}
+}

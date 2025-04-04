@@ -71,6 +71,8 @@ func Handle(conn net.Conn) {
 			Body:       "",
 		}
 	}
+	
+	resp.TryCompress(req)
 
 	conn.Write(resp.Marshal())
 }
