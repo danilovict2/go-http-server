@@ -55,11 +55,19 @@ func userAgent(req *Request) *Response {
 
 func getFile(req *Request) *Response {
 	content, err := os.ReadFile(directory + req.PathValues["filename"])
-	if err != nil {
+	if os.IsNotExist(err) {
 		return &Response{
 			Protocol:   "HTTP/1.1",
 			StatusCode: 404,
 			StatusText: "Not Found",
+			Headers:    make(map[string]string),
+			Body:       "",
+		}
+	} else if err != nil {
+		return &Response{
+			Protocol:   "HTTP/1.1",
+			StatusCode: 500,
+			StatusText: "Internal Server Error",
 			Headers:    make(map[string]string),
 			Body:       "",
 		}
