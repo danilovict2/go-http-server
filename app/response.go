@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"compress/gzip"
 	"fmt"
 	"slices"
 	"strconv"
@@ -50,8 +52,19 @@ func (r *Response) marshalHeaders() []byte {
 	return ret
 }
 
-func (r *Response) TryCompress(req *Request) {
+func (resp *Response) TryCompress(req *Request) {
 	if val, ok := req.Headers["accept-encoding"]; ok && slices.Contains(strings.Split(val, ", "), "gzip") {
-		r.Headers["Content-Encoding"] = "gzip"
+		var b bytes.Buffer
+		w := gzip.NewWriter(&b)
+
+		if _, err := w.Write([]byte(resp.Body)); err != nil {
+			fmt.Println("Failed to compress response body: ", err.Error())
+			return
+		}
+		w.Close()
+
+		resp.Body = b.String()
+		resp.Headers["Content-Encoding"] = "gzip"
+		resp.Headers["Content-Length"] = strconv.Itoa(len(resp.Body))
 	}
 }
