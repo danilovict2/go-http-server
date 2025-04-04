@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
+	"strings"
 )
 
 type Response struct {
@@ -49,7 +51,7 @@ func (r *Response) marshalHeaders() []byte {
 }
 
 func (r *Response) TryCompress(req *Request) {
-	if val, ok := req.Headers["accept-encoding"]; ok && val == "gzip" {
+	if val, ok := req.Headers["accept-encoding"]; ok && slices.Contains(strings.Split(val, ", "), "gzip") {
 		r.Headers["Content-Encoding"] = "gzip"
 	}
 }
