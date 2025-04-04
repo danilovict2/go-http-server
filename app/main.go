@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net"
 	"os"
@@ -10,7 +11,11 @@ type Server struct {
 	l net.Listener
 }
 
+var directory string
+
 func main() {
+	flag.Parse()
+
 	l, err := net.Listen("tcp", "0.0.0.0:4221")
 	if err != nil {
 		fmt.Println("Failed to bind to port 4221")
@@ -23,6 +28,10 @@ func main() {
 		l: l,
 	}
 	server.Accept()
+}
+
+func init() {
+	flag.StringVar(&directory, "directory", "/tmp/", "Specifies the directory where the files are stored, as an absolute path")
 }
 
 func (s *Server) Accept() {
