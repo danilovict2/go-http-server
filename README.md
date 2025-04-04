@@ -107,8 +107,6 @@ $ cat /tmp/file_123
 
 ### Compression
 
-### Compression
-
 To enable response body compression, include the `Accept-Encoding` header in your request with the desired compression schemes. The server will respond with a `Content-Encoding` header indicating the compression scheme it applied, or none if no supported scheme was specified.
 
 **Note:** Currently, only the `gzip` compression scheme is supported.
