@@ -8,10 +8,11 @@ import (
 type Handler func(req *Request) *Response
 
 var Handlers = map[string]Handler{
-	"/":                 root,
-	"/echo/{str}":       echo,
-	"/user-agent":       userAgent,
-	"/files/{filename}": file,
+	"GET /":                  root,
+	"GET /echo/{str}":        echo,
+	"GET /user-agent":        userAgent,
+	"GET /files/{filename}":  getFile,
+	"POST /files/{filename}": createFile,
 }
 
 func root(req *Request) *Response {
@@ -52,7 +53,7 @@ func userAgent(req *Request) *Response {
 	}
 }
 
-func file(req *Request) *Response {
+func getFile(req *Request) *Response {
 	content, err := os.ReadFile(directory + req.PathValues["filename"])
 	if err != nil {
 		return &Response{
@@ -74,5 +75,37 @@ func file(req *Request) *Response {
 		StatusText: "OK",
 		Headers:    headers,
 		Body:       string(content),
+	}
+}
+
+func createFile(req *Request) *Response {
+	f, err := os.Create(directory + req.PathValues["filename"])
+	if err != nil {
+		return &Response{
+			Protocol:   "HTTP/1.1",
+			StatusCode: 500,
+			StatusText: "Internal Server Error",
+			Headers:    make(map[string]string),
+			Body:       "",
+		}
+	}
+	defer f.Close()
+
+	if _, err := f.WriteString(req.Body); err != nil {
+		return &Response{
+			Protocol:   "HTTP/1.1",
+			StatusCode: 500,
+			StatusText: "Internal Server Error",
+			Headers:    make(map[string]string),
+			Body:       "",
+		}
+	}
+
+	return &Response{
+		Protocol:   "HTTP/1.1",
+		StatusCode: 201,
+		StatusText: "Created",
+		Headers:    make(map[string]string),
+		Body:       "",
 	}
 }

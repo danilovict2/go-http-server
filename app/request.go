@@ -11,20 +11,24 @@ type Request struct {
 	Protocol   string
 	PathValues map[string]string
 	Headers    map[string]string
+	Body       string
 }
 
 func Unmarshal(rawRequest []byte) *Request {
 	parts := strings.Split(string(rawRequest), "\r\n")
 	line := strings.Split(parts[0], " ")
 
-	headerMap := make(map[string]string)
-	for _, header := range parts[1:] {
-		kvp := strings.Split(header, ": ")
-		if len(kvp) < 2 {
+	headers := make(map[string]string)
+	body := ""
+
+	for i, part := range parts[1:] {
+		if part == "" {
+			body = parts[i+2]
 			break
 		}
 
-		headerMap[strings.ToLower(kvp[0])] = kvp[1]
+		header := strings.Split(part, ": ")
+		headers[strings.ToLower(header[0])] = header[1]
 	}
 
 	req := &Request{
@@ -32,7 +36,8 @@ func Unmarshal(rawRequest []byte) *Request {
 		Target:     line[1],
 		Protocol:   line[2],
 		PathValues: make(map[string]string),
-		Headers:    headerMap,
+		Headers:    headers,
+		Body:       body,
 	}
 
 	req.setPathValues()
@@ -42,6 +47,8 @@ func Unmarshal(rawRequest []byte) *Request {
 
 func (r *Request) setPathValues() {
 	for endpoint := range Handlers {
+		endpoint = strings.TrimPrefix(endpoint, fmt.Sprintf("%s ", r.Method))
+
 		start := strings.Index(endpoint, "{")
 		if start == -1 {
 			continue

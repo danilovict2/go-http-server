@@ -50,14 +50,14 @@ func Handle(conn net.Conn) {
 	defer conn.Close()
 
 	rawRequest := make([]byte, 1024)
-	_, err := conn.Read(rawRequest)
+	n, err := conn.Read(rawRequest)
 	if err != nil {
 		fmt.Println("Error reading the request: ", err.Error())
 		os.Exit(1)
 	}
 
-	req := Unmarshal(rawRequest)
-	target := NormalizeTarget(req)
+	req := Unmarshal(rawRequest[:n])
+	target := fmt.Sprintf("%s %s", req.Method, NormalizeTarget(req))
 	var resp *Response
 
 	if handler, ok := Handlers[target]; ok {
