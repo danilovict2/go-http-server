@@ -78,10 +78,15 @@ func Handle(conn net.Conn) {
 			}
 		}
 
+		connHeader := req.Headers["connection"]
+		if connHeader == "close" {
+			resp.Headers["Connection"] = connHeader
+		}
+
 		resp.TryCompress(req)
 		conn.Write(resp.Marshal())
 
-		if val, ok := req.Headers["connection"]; req.Protocol != "HTTP/1.1" || (ok && val == "close") {
+		if req.Protocol != "HTTP/1.1" || connHeader == "close" {
 			break	
 		}
 	}
