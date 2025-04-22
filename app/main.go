@@ -47,16 +47,19 @@ func (s *Server) Accept() {
 }
 
 func Handle(conn net.Conn) {
-	defer conn.Close()
-
 	rawRequest := make([]byte, 1024)
 	n, err := conn.Read(rawRequest)
 	if err != nil {
 		fmt.Println("Error reading the request: ", err.Error())
+		conn.Close()
 		os.Exit(1)
 	}
 
 	req := Unmarshal(rawRequest[:n])
+	if val, ok := req.Headers["connection"]; req.Protocol != "HTTP/1.1" || (ok && val == "close") {
+		defer conn.Close()	
+	}
+
 	target := fmt.Sprintf("%s %s", req.Method, NormalizeTarget(req))
 	var resp *Response
 
