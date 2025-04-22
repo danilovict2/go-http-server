@@ -107,8 +107,6 @@ $ cat /tmp/file_123
 
 ### Compression
 
-### Compression
-
 To enable response body compression, include the `Accept-Encoding` header in your request with the desired compression schemes. The server will respond with a `Content-Encoding` header indicating the compression scheme it applied, or none if no supported scheme was specified.
 
 **Note:** Currently, only the `gzip` compression scheme is supported.
@@ -116,6 +114,21 @@ To enable response body compression, include the `Accept-Encoding` header in you
 ```bash
 $ curl -H "Accept-Encoding: gzip" http://localhost:4221/echo/abc -o - | gunzip
 abc
+```
+
+### Persistent connection
+
+By default, HTTP/1.1 connections are persistent, meaning the same TCP connection can be reused for multiple requests.
+
+```bash
+$ curl --http1.1 http://localhost:4221/echo/banana --next http://localhost:4221/user-agent -H "User-Agent: blueberry/apple-blueberry"
+bananablueberry/apple-blueberry
+```
+
+To explicitly close connection use the `Connection: close` header.
+```bash
+$ curl --http1.1 http://localhost:4221/echo/orange --next http://localhost:4221/ -H "Connection: close"
+orange
 ```
 
 ## 🤝 Contributing
